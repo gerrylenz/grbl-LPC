@@ -1,131 +1,143 @@
-![GitHub Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
+# grbl-LPC für die Lasermaschine
 
-***
-Note: this branch defaults stepper current to zero and has defaults for more boards and machines.
-***
-This is GRBL 1.1 ported to the LPC1769. 
-It can run on the following boards:
-- Smoothieboard
-- Cohesion3D Remix and Mini
-- MKS SBase
-- Azteeg X5 
+Fork von [cprezzi/grbl-LPC](https://github.com/cprezzi/grbl-LPC) (Grbl 1.1f auf dem LPC1768/LPC1769). Diese Fassung spricht mit LightBurn über die RJ45-Buchse, nutzt das Maschinenprofil der Laseranlage und kann mit einem analogen Joystick verfahren.
 
-SKR boards don't work, because pin mapping is messed!
+Die allgemeinen Grbl-Befehle stehen im [Grbl-Wiki](https://github.com/gnea/grbl/wiki). Lizenz: GPLv3, siehe `COPYING`.
 
-**Usage notes:**
-* This uses a different usb-serial driver than Smoothieware. Windows 10 should recognize it automatically.
-  If it doesn't, try installing VCOM_lib/usbser.inf.
-* This doesn't pass the sdcard to the host. Once installed you need to use a micro sdcard adaptor to replace or change it.
-* Only tested with lasers with PWM. Non-PWM spindle control not ported.
-* These are defaults for easy-to-change config values.
-  * WPos enabled for LaserWeb compatability ($10=0)
-  * Laser mode: ON ($32)
-  * Minimum S value: 0.0 ($31)
-  * Maximum S value: 1.0 ($30)
-* Hard limits not yet ported
-* Control inputs not yet ported (e.g. Cycle Start and Safety Door switches)
+## Deutsch
 
-New configuration settings
-* $33 is PWM frequency in Hz
-* $34 is PWM off value in %
-* $35 is PWM min value in %
-* $36 is PWM max value in %
-* $140, $141, $142, $143 are X, Y, Z, E0 current (amps)
-  * Default to 0.0 A to avoid burning out your motors
-  * Your motors will likely stall if you don't set these!
+### LightBurn über Ethernet
 
-**Build notes:**
-* You should use virtual machines, if you use multiple toolchains on the same PC.
-* Install make if not already there (for Windows see http://gnuwin32.sourceforge.net/packages/make.htm)
-* Install the ARM embeded toolchain (see https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads)
-* Include ```make``` and the ```arm-none-eabi-*``` tools in your path.
-* Run ```git submodule init``` and ```git submodule update``` before building.
-* Run ```make```, which produces 2 files:
-  * ```build/firmware.bin```: this is compatible with the sdcard bootloader.
-  * ```build/grbl.hex```: this is not compatible with the sdcard bootloader. It loads using Flash Magic 
-    and is primarilly for developers who don't want to keep swapping sdcards. If you flash this,
-    then you'll have to reflash the bootloader if you want to go back.
+Die USB-Serielle Schnittstelle wird nicht gestartet. Der Grbl-Datenstrom läuft als rohes TCP auf Port 23, ohne Telnet-Steuerzeichen.
 
-***
-Grbl is a no-compromise, high performance, low cost alternative to parallel-port-based motion control for CNC milling. This version of Grbl runs on an Arduino with a 328p processor (Uno, Duemilanove, Nano, Micro, etc).
+| | |
+|---|---|
+| IP | `192.168.178.222` |
+| Port | `23` |
+| MAC | `02:47:52:42:4C:01` |
 
-The controller is written in highly optimized C utilizing every clever feature of the AVR-chips to achieve precise timing and asynchronous operation. It is able to maintain up to 30kHz of stable, jitter free control pulses.
+Adresse und MAC stehen in `enet/net_config.h`. PC und Board müssen im Netz `192.168.178.0/24` liegen. Ist die Adresse belegt, den Wert dort ändern und neu bauen.
 
-It accepts standards-compliant g-code and has been tested with the output of several CAM tools with no problems. Arcs, circles and helical motion are fully supported, as well as, all other primary g-code commands. Macro functions, variables, and most canned cycles are not supported, but we think GUIs can do a much better job at translating them into straight g-code anyhow.
+In LightBurn: Gerätetyp **GRBL**, Verbindung **Ethernet or Wifi/TCP**, diese IP, Port 23. S-Value Max muss zu `$30` passen, hier **1000**. Zuerst Übertragung **Synchronous**. Ein Ping auf die IP prüft die Leitung, bevor LightBurn verbunden wird.
 
-Grbl includes full acceleration management with look ahead. That means the controller will look up to 16 motions into the future and plan its velocities ahead to deliver smooth acceleration and jerk-free cornering.
+`firmware.bin` auf die SD-Karte ins Stammverzeichnis kopieren und die Karte zurücksetzen. `build/grbl.hex` ist nur für ein direktes Flashen ohne SD-Bootloader.
 
-* [Licensing](https://github.com/gnea/grbl/wiki/Licensing): Grbl is free software, released under the GPLv3 license.
+### Maschinenprofil
 
-* For more information and help, check out our **[Wiki pages!](https://github.com/gnea/grbl/wiki)** If you find that the information is out-dated, please to help us keep it updated by editing it or notifying our community! Thanks!
+Gebaut wird die Map `CPU_MAP_MKS_SBASE` mit den Defaults `DEFAULTS_Laser`. Die Zahlen stehen auch in `grbl-config.txt`. Sie gelten auf der Maschine erst nach `$RST=*`. Bis dahin bleibt der Inhalt des EEPROM.
 
-* Lead Developer: Sungeun "Sonny" Jeon, Ph.D. (USA) aka @chamnit
+| | |
+|---|---|
+| Schritte X/Y/Z/A | 313,482 / mm |
+| Vorschub | 12 000 mm/min |
+| Beschleunigung | 2500 mm/s² |
+| Arbeitsraum X/Y/Z | 600 / 400 / 150 mm |
+| Strom X/Y | 0,6 A, Z und A aus |
+| Richtung `$3` | 3 (X und Y invertiert) |
+| Homing `$22` / `$23` | an / 1 |
+| Softlimits `$20` / Hardlimits `$21` | an / aus |
+| Laser `$30` / `$32` | 1000 / an |
+| Homing-Ursprung | am angefahrenen Schalter |
 
-* Built on the wonderful Grbl v0.6 (2011) firmware written by Simen Svale Skogsrud (Norway).
+### Pins
 
-***
+| Funktion | Pin |
+|---|---|
+| Flut (M8) | P2.7 |
+| Nebel (M7) | P2.6 |
+| Laser-PWM | P2.5 |
+| Spindel-Enable | P1.30 |
+| Spindel-Richtung | P1.31 |
+| Feed-Hold | P1.22 |
+| Cycle-Start | P1.23 |
+| Probe | P1.27 (Y-Max) |
+| Joystick X | P0.24 |
+| Joystick Y | P0.25 |
 
-### Official Supporters of the Grbl CNC Project
-![Official Supporters](https://github.com/gnea/gnea-Media/blob/master/Contributors.png?raw=true)
+M7 und M8 können gleichzeitig aktiv sein.
 
+### Joystick
 
-***
+Potis nur an **3,3 V**, nicht an 5 V. Beim Einschalten muss der Stick losgelassen in der Mitte stehen. Diese Lage wird als Nullpunkt gespeichert. Außerhalb einer Totzone fährt die Maschine in kurzen Stücken, die Geschwindigkeit folgt der Auslenkung. In der Mitte wird der Jog sofort abgebrochen. Der Laser bleibt dabei aus.
 
-## Update Summary for v1.1
-- **IMPORTANT:** Your EEPROM will be wiped and restored with new settings. This is due to the addition of two new spindle speed '$' settings.
+Der Stick wirkt nur im Leerlauf. Während eines LightBurn-Jobs bleibt er ohne Wirkung. Weil Homing an ist, startet die Steuerung im Alarm. Der Stick greift erst nach `$H` oder `$X`. Läuft eine Achse falsch herum, `JOYSTICK_INVERT_X` oder `JOYSTICK_INVERT_Y` in `grbl/joystick.c` auf 1 setzen.
 
-- **Real-time Overrides** : Alters the machine running state immediately with feed, rapid, spindle speed, spindle stop, and coolant toggle controls. This awesome new feature is common only on industrial machines, often used to optimize speeds and feeds while a job is running. Most hobby CNC's try to mimic this behavior, but usually have large amounts of lag. Grbl executes overrides in realtime and within tens of milliseconds.
-
-- **Jogging Mode** : The new jogging commands are independent of the g-code parser, so that the parser state doesn't get altered and cause a potential crash if not restored properly. Documentation is included on how this works and how it can be used to control your machine via a joystick or rotary dial with a low-latency, satisfying response.
-
-- **Laser Mode** : The new "laser" mode will cause Grbl to move continuously through consecutive G1, G2, and G3 commands with spindle speed changes. When "laser" mode is disabled, Grbl will instead come to a stop to ensure a spindle comes up to speed properly. Spindle speed overrides also work with laser mode so you can tweak the laser power, if you need to during the job. Switch between "laser" mode and "normal" mode via a `$` setting.
-
-	- **Dynamic Laser Power Scaling with Speed** : If your machine has low accelerations, Grbl will automagically scale the laser power based on how fast Grbl is traveling, so you won't have burnt corners when your CNC has to make a turn! Enabled by the `M4` spindle CCW command when laser mode is enabled!
-
-- **Sleep Mode** : Grbl may now be put to "sleep" via a `$SLP` command. This will disable everything, including the stepper drivers. Nice to have when you are leaving your machine unattended and want to power down everything automatically. Only a reset exits the sleep state.
-
-- **Significant Interface Improvements**: Tweaked to increase overall performance, include lots more real-time data, and to simplify maintaining and writing GUIs. Based on direct feedback from multiple GUI developers and bench performance testing. _NOTE: GUIs need to specifically update their code to be compatible with v1.1 and later._
-
-	- **New Status Reports**: To account for the additional override data, status reports have been tweaked to cram more data into it, while still being smaller than before. Documentation is included, outlining how it has been changed. 
-	- **Improved Error/Alarm Feedback** : All Grbl error and alarm messages have been changed to providing a code. Each code is associated with a specific problem, so users will know exactly what is wrong without having to guess. Documentation and an easy to parse CSV is included in the repo.
-	- **Extended-ASCII realtime commands** : All overrides and future real-time commands are defined in the extended-ASCII character space. Unfortunately not easily type-able on a keyboard, but helps prevent accidental commands from a g-code file having these characters and gives lots of space for future expansion.
-	- **Message Prefixes** : Every message type from Grbl has a unique prefix to help GUIs immediately determine what the message is and parse it accordingly without having to know context. The prior interface had several instances of GUIs having to figure out the meaning of a message, which made everything more complicated than it needed to be.
-
-- New OEM specific features, such as safety door parking, single configuration file build option, EEPROM restrictions and restoring controls, and storing product data information.
- 
-- New safety door parking motion as a compile-option. Grbl will retract, disable the spindle/coolant, and park near Z max. When resumed, it will perform these task in reverse order and continue the program. Highly configurable, even to add more than one parking motion. See config.h for details.
-
-- New '$' Grbl settings for max and min spindle rpm. Allows for tweaking the PWM output to more closely match true spindle rpm. When max rpm is set to zero or less than min rpm, the PWM pin D11 will act like a simple enable on/off output.
-
-- Updated G28 and G30 behavior from NIST to LinuxCNC g-code description. In short, if a intermediate motion is specified, only the axes specified will move to the stored coordinates, not all axes as before.
-
-- Lots of minor bug fixes and refactoring to make the code more efficient and flexible.
-
-- **NOTE:** Arduino Mega2560 support has been moved to an active, official Grbl-Mega [project](http://www.github.com/gnea/grbl-Mega/). All new developments here and there will be synced when it makes sense to.
-
-
--
+### Bauen
 
 ```
-List of Supported G-Codes in Grbl v1.1:
-  - Non-Modal Commands: G4, G10L2, G10L20, G28, G30, G28.1, G30.1, G53, G92, G92.1
-  - Motion Modes: G0, G1, G2, G3, G38.2, G38.3, G38.4, G38.5, G80
-  - Feed Rate Modes: G93, G94
-  - Unit Modes: G20, G21
-  - Distance Modes: G90, G91
-  - Arc IJK Distance Modes: G91.1
-  - Plane Select Modes: G17, G18, G19
-  - Tool Length Offset Modes: G43.1, G49
-  - Cutter Compensation Modes: G40
-  - Coordinate System Modes: G54, G55, G56, G57, G58, G59
-  - Control Modes: G61
-  - Program Flow: M0, M1, M2, M30*
-  - Coolant Control: M7*, M8, M9
-  - Spindle Control: M3, M4, M5
-  - Valid Non-Command Words: F, I, J, K, L, N, P, R, S, T, X, Y, Z
+git submodule update --init
+make
 ```
 
--------------
-Grbl is an open-source project and fueled by the free-time of our intrepid administrators and altruistic users. If you'd like to donate, all proceeds will be used to help fund supporting hardware and testing equipment. Thank you!
+Benötigt werden `make` und die ARM-Toolchain `arm-none-eabi-gcc`. Das Ergebnis ist `build/firmware.bin`.
 
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CUGXJHXA36BYW)
+## English
+
+Fork of [cprezzi/grbl-LPC](https://github.com/cprezzi/grbl-LPC) (Grbl 1.1f on the LPC1768/LPC1769). This build talks to LightBurn through the RJ45 jack, uses this laser machine's profile, and can jog from an analog joystick.
+
+General Grbl commands are in the [Grbl wiki](https://github.com/gnea/grbl/wiki). License: GPLv3, see `COPYING`.
+
+### LightBurn over Ethernet
+
+USB serial is not started. The Grbl byte stream is raw TCP on port 23, with no Telnet control codes.
+
+| | |
+|---|---|
+| IP | `192.168.178.222` |
+| Port | `23` |
+| MAC | `02:47:52:42:4C:01` |
+
+Address and MAC are in `enet/net_config.h`. The PC and the board must be on `192.168.178.0/24`. If that address is taken, change it there and rebuild.
+
+In LightBurn: device type **GRBL**, connection **Ethernet or Wifi/TCP**, that IP, port 23. S-Value Max must match `$30`, which is **1000** here. Start with **Synchronous** transfer. Ping the IP before connecting LightBurn.
+
+Copy `firmware.bin` to the root of the SD card and reset the board. `build/grbl.hex` is only for flashing without the SD bootloader.
+
+### Machine profile
+
+The build uses `CPU_MAP_MKS_SBASE` and `DEFAULTS_Laser`. The same numbers are listed in `grbl-config.txt`. They replace the values stored on the machine only after `$RST=*`. Until then the EEPROM contents stay in effect.
+
+| | |
+|---|---|
+| Steps X/Y/Z/A | 313.482 / mm |
+| Feed | 12 000 mm/min |
+| Acceleration | 2500 mm/s² |
+| Travel X/Y/Z | 600 / 400 / 150 mm |
+| Current X/Y | 0.6 A, Z and A off |
+| Direction `$3` | 3 (X and Y inverted) |
+| Homing `$22` / `$23` | on / 1 |
+| Soft limits `$20` / hard limits `$21` | on / off |
+| Laser `$30` / `$32` | 1000 / on |
+| Homing origin | at the switch that was reached |
+
+### Pins
+
+| Function | Pin |
+|---|---|
+| Flood (M8) | P2.7 |
+| Mist (M7) | P2.6 |
+| Laser PWM | P2.5 |
+| Spindle enable | P1.30 |
+| Spindle direction | P1.31 |
+| Feed hold | P1.22 |
+| Cycle start | P1.23 |
+| Probe | P1.27 (Y max) |
+| Joystick X | P0.24 |
+| Joystick Y | P0.25 |
+
+M7 and M8 may be on at the same time.
+
+### Joystick
+
+Power the pots from **3.3 V** only, not 5 V. The stick must be released at the center when power is applied. That reading is stored as the zero point. Outside a dead zone the machine jogs in short segments, and the feed follows the deflection. At the center the jog is cancelled at once. The laser stays off.
+
+The stick works only while idle. It has no effect during a LightBurn job. Homing is enabled, so the controller starts in alarm. The stick works after `$H` or `$X`. If an axis runs the wrong way, set `JOYSTICK_INVERT_X` or `JOYSTICK_INVERT_Y` to 1 in `grbl/joystick.c`.
+
+### Build
+
+```
+git submodule update --init
+make
+```
+
+This needs `make` and the ARM toolchain `arm-none-eabi-gcc`. The output is `build/firmware.bin`.

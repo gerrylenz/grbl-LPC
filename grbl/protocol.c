@@ -21,6 +21,9 @@
 
 #include "grbl.h"
 #include "net.h"
+#ifdef ENABLE_JOYSTICK
+#include "joystick.h"
+#endif
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -216,6 +219,9 @@ void protocol_execute_realtime()
 void protocol_exec_rt_system()
 {
   net_poll();
+  #ifdef ENABLE_JOYSTICK
+    joystick_poll();
+  #endif
   uint8_t rt_exec; // Temp variable to avoid calling volatile multiple times.
   rt_exec = sys_rt_exec_alarm; // Copy volatile sys_rt_exec_alarm.
   if (rt_exec) { // Enter only if any bit flag is true

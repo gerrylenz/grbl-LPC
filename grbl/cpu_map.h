@@ -548,11 +548,10 @@
   // Define flood and mist coolant enable output pins.
   #define COOLANT_FLOOD_DDR   LPC_GPIO2->FIODIR
   #define COOLANT_FLOOD_PORT  LPC_GPIO2->FIOPIN
-  #define COOLANT_FLOOD_BIT   6  // MOSFET 2.6
+  #define COOLANT_FLOOD_BIT   7  // MOSFET 2.7
   #define COOLANT_MIST_DDR    LPC_GPIO2->FIODIR
   #define COOLANT_MIST_PORT   LPC_GPIO2->FIOPIN
-  #define COOLANT_MIST_BIT    7  // MOSFET 2.7
-  #define ENABLE_M7           // enables COOLANT MIST
+  #define COOLANT_MIST_BIT    6  // MOSFET 2.6
 
   // Define user-control controls (cycle start, reset, feed hold) input pins.
   // NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).

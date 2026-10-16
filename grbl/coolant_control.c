@@ -71,6 +71,7 @@ void coolant_stop()
     #else
       COOLANT_MIST_PORT &= ~(1 << COOLANT_MIST_BIT);
     #endif
+    delay_ms(1);
   #endif
 }
 

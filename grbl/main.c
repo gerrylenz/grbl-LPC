@@ -20,6 +20,9 @@
 */
 
 #include "grbl.h"
+#ifdef ENABLE_JOYSTICK
+#include "joystick.h"
+#endif
 
 void isr_init();
 
@@ -44,6 +47,9 @@ int main(void)
   debug_init();    // Initialize debug leds
   isr_init();      // Set ISR priorities (stepper ISR uses Timer1)
   delay_init();    // Setup delay timer (uses Timer3)
+  #ifdef ENABLE_JOYSTICK
+    joystick_init(); // Capture the released stick as the center.
+  #endif
   serial_init();   // Setup serial baud rate and interrupts
   eeprom_init();   // Init EEPROM or Flash
   settings_init(); // Load Grbl settings from EEPROM
