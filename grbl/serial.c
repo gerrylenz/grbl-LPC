@@ -20,8 +20,11 @@
 */
 
 #include "grbl.h"
+#include "net.h"
 
+#ifndef ENABLE_ETHERNET
 #define USE_USB
+#endif
 
 #ifdef USE_USB
 #include "usbSerial.h"
@@ -81,7 +84,9 @@ uint8_t serial_get_tx_buffer_count()
 
 void serial_init()
 {
-#ifdef USE_USB
+#ifdef ENABLE_ETHERNET
+  net_init();
+#elif defined(USE_USB)
   usbSerialInit(
     [](bool dtr, bool rts) {
       if (dtr != lastDtr)
@@ -135,7 +140,9 @@ void legacy_serial_init()
 
 // Writes one byte to the TX serial buffer. Called by main program.
 void serial_write(uint8_t data) {
-#ifdef USE_USB
+#ifdef ENABLE_ETHERNET
+  net_write(data);
+#elif defined(USE_USB)
   while(VCOM_putchar(data) == EOF) {
     // TODO: Restructure st_prep_buffer() calls to be executed here during a long print.
     if (sys_rt_exec_state & EXEC_RESET) { return; } // Only check for abort to avoid an endless loop.
@@ -285,6 +292,11 @@ void legacy_ISR(uint8_t data)
   }
 }
 
+
+void serial_rx_byte(uint8_t data)
+{
+  legacy_ISR(data);
+}
 
 void serial_reset_read_buffer()
 {

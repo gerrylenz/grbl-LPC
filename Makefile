@@ -28,6 +28,7 @@ INCLUDES =                                        \
     -I grbl-lpc                                   \
     -I lpc17xx                                    \
     -I VCOM_lib                                   \
+    -I enet                                       \
 
 # Compile all .c and .cpp files in these directories
 # Hack: .c files are compiled as if they were c++.
@@ -35,6 +36,7 @@ SRC_DIRS =          \
 	grbl            \
     grbl-lpc        \
     VCOM_lib        \
+    enet            \
 
 # Compile all .c files in these directories, except ones on the exclude list.
 # These files get extra -Wno-* flags to reduce spam.

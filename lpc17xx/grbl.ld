@@ -105,6 +105,14 @@ SECTIONS
 		*.o (USB_RAM)
 	} > IRAM1
 
+	/* EMAC DMA descriptors and frames. The Ethernet block cannot reach IRAM0. */
+	.eth_ram (NOLOAD):
+	{
+		. = ALIGN(8);
+		*(.eth_ram)
+		*(.eth_ram.*)
+	} > IRAM2
+
         /******************************************/
 	/* data section */
 	.data :

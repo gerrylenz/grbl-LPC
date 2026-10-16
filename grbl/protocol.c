@@ -20,6 +20,7 @@
 */
 
 #include "grbl.h"
+#include "net.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -214,6 +215,7 @@ void protocol_execute_realtime()
 // NOTE: Do not alter this unless you know exactly what you are doing!
 void protocol_exec_rt_system()
 {
+  net_poll();
   uint8_t rt_exec; // Temp variable to avoid calling volatile multiple times.
   rt_exec = sys_rt_exec_alarm; // Copy volatile sys_rt_exec_alarm.
   if (rt_exec) { // Enter only if any bit flag is true
@@ -232,6 +234,11 @@ void protocol_exec_rt_system()
         // the user and a GUI time to do what is needed before resetting, like killing the
         // incoming stream. The same could be said about soft limits. While the position is not
         // lost, continued streaming could cause a serious crash if by chance it gets executed.
+        net_poll();
+        if (sys_rt_exec_state & EXEC_STATUS_REPORT) {
+          report_realtime_status();
+          system_clear_exec_state_flag(EXEC_STATUS_REPORT);
+        }
       } while (bit_isfalse(sys_rt_exec_state,EXEC_RESET));
     }
     system_clear_exec_alarm(); // Clear alarm

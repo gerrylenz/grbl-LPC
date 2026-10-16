@@ -33,6 +33,10 @@
 
 // Define board type for pin map and default settings.
 #define CPU_MAP_SMOOTHIEBOARD   // Smoothieboard (NXP LPC1769 MCU)
+
+// Raw TCP port 23 on the Smoothieboard RJ45, for LightBurn "Ethernet or Wifi/TCP".
+// IP address and MAC: enet/net_config.h. USB serial is not started when this is set.
+#define ENABLE_ETHERNET
 //#define CPU_MAP_C3D_REMIX       // Cohesion3D Remix (NXP LPC1769 MCU)
 //#define CPU_MAP_C3D_MINI        // Cohesion3D Mini (NXP LPC1769 MCU)
 //#define CPU_MAP_MKS_SBASE       // MKS SBASE Board (NXP LPC1768 MCU)

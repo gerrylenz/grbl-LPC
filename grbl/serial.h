@@ -39,6 +39,9 @@
 
 void serial_init();
 
+// One byte from the active transport. Realtime characters are handled here.
+void serial_rx_byte(uint8_t data);
+
 // Writes one byte to the TX serial buffer. Called by main program.
 void serial_write(uint8_t data);
 
