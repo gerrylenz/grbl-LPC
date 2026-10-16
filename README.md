@@ -51,14 +51,16 @@ Gebaut wird die Map `CPU_MAP_MKS_SBASE` mit den Defaults `DEFAULTS_Laser`. Die Z
 | Feed-Hold | P1.22 |
 | Cycle-Start | P1.23 |
 | Probe | P1.27 (Y-Max) |
-| Joystick X | P0.24 |
-| Joystick Y | P0.25 |
+| Joystick X | TH2, P0.24 |
+| Joystick Y | TH3, P0.25 |
 
 M7 und M8 können gleichzeitig aktiv sein.
 
 ### Joystick
 
-Potis nur an **3,3 V**, nicht an 5 V. Beim Einschalten muss der Stick losgelassen in der Mitte stehen. Diese Lage wird als Nullpunkt gespeichert. Außerhalb einer Totzone fährt die Maschine in kurzen Stücken, die Geschwindigkeit folgt der Auslenkung. In der Mitte wird der Jog sofort abgebrochen. Der Laser bleibt dabei aus.
+Die Buchsen **TH2** und **TH3** an der MKS SBASE haben nur zwei Pole, **+** und **−**. **TH1** (P0.23) bleibt frei. **+** ist der Messeingang, auf der Platine liegt daran ein Widerstand nach 3,3 V. **−** ist Masse. An **+** keine 5 V legen.
+
+Den mittleren Kontakt des Potis an **+**, einen Außenkontakt an **−**. Den anderen Außenkontakt offen lassen oder mit der Mitte verbinden. Beim Einschalten muss der Stick losgelassen in der Mitte stehen. Diese Lage wird als Nullpunkt gespeichert. Außerhalb einer Totzone fährt die Maschine in kurzen Stücken, die Geschwindigkeit folgt der Auslenkung. In der Mitte wird der Jog sofort abgebrochen. Der Laser bleibt dabei aus.
 
 Der Stick wirkt nur im Leerlauf. Während eines LightBurn-Jobs bleibt er ohne Wirkung. Weil Homing an ist, startet die Steuerung im Alarm. Der Stick greift erst nach `$H` oder `$X`. Läuft eine Achse falsch herum, `JOYSTICK_INVERT_X` oder `JOYSTICK_INVERT_Y` in `grbl/joystick.c` auf 1 setzen.
 
@@ -122,14 +124,16 @@ The build uses `CPU_MAP_MKS_SBASE` and `DEFAULTS_Laser`. The same numbers are li
 | Feed hold | P1.22 |
 | Cycle start | P1.23 |
 | Probe | P1.27 (Y max) |
-| Joystick X | P0.24 |
-| Joystick Y | P0.25 |
+| Joystick X | TH2, P0.24 |
+| Joystick Y | TH3, P0.25 |
 
 M7 and M8 may be on at the same time.
 
 ### Joystick
 
-Power the pots from **3.3 V** only, not 5 V. The stick must be released at the center when power is applied. That reading is stored as the zero point. Outside a dead zone the machine jogs in short segments, and the feed follows the deflection. At the center the jog is cancelled at once. The laser stays off.
+The **TH2** and **TH3** sockets on the MKS SBASE have two pins, **+** and **−**. **TH1** (P0.23) stays unused. **+** is the sense input; the board already has a resistor from that pin to 3.3 V. **−** is ground. Do not feed 5 V into **+**.
+
+Connect the pot wiper to **+** and one outer pin to **−**. Leave the other outer pin open, or tie it to the wiper. The stick must be released at the center when power is applied. That reading is stored as the zero point. Outside a dead zone the machine jogs in short segments, and the feed follows the deflection. At the center the jog is cancelled at once. The laser stays off.
 
 The stick works only while idle. It has no effect during a LightBurn job. Homing is enabled, so the controller starts in alarm. The stick works after `$H` or `$X`. If an axis runs the wrong way, set `JOYSTICK_INVERT_X` or `JOYSTICK_INVERT_Y` to 1 in `grbl/joystick.c`.
 
